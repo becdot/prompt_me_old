@@ -1,0 +1,34 @@
+{
+  "name": "prompt_me",
+  "version": "1.0.0",
+  "description": "Automatic writing prompt generator",
+  "main": "index.js",
+  "scripts": {
+    "database": "mongod --dbpath=data --port 27017",
+    "start": "node index.js",
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://www.github.com/becdot/prompt_me"
+  },
+  "author": "Becca Liss",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/becdot/prompt_me/issues"
+  },
+  "homepage": "https://github.com/becdot/prompt_me#readme",
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-react": "^6.9.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "mongodb": "^2.2.26",
+    "mongoose": "^4.9.8"
+  }
+}
