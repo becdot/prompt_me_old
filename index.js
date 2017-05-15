@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const Database = require('./database');
+const Prompt = require('./database').Prompt;
 
 const app = express();
 app.use(bodyParser.json());
@@ -14,21 +14,20 @@ app.get('/', (request, response) => {
 
 app.route('/prompts')
   .get((request, response) => {
-    Database.find('prompts').then((prompts) => {
+    Prompt.find().then((prompts) => {
       console.log(`Found ${prompts.length} prompts`);
       response.send(JSON.stringify(prompts));
     });
   })
   .post((request, response) => {
-    Database.add('prompts', request.body.prompts).then((prompts) => {
-      console.log(`Added ${prompts.result.n} prompt to the database`);
-      response.send(JSON.stringify(prompts.ops));
+    Prompt.create(request.body.prompts).then((prompts) => {
+      console.log(`Added ${prompts.length} prompt to the database`);
+      response.send(JSON.stringify(prompts));
     });
   })
   .delete((request, response) => {
-    Database.delete('prompts', request.body.prompts).then((prompts) => {
-      console.log(`Deleted ${prompts.result.n} prompts from the database`);
-      response.send(JSON.stringify(prompts.ops));
+    Prompt.delete(request.query).then((prompt) => {
+      response.send(JSON.stringify(prompt));
     });
   });
 

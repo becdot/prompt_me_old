@@ -1,87 +1,83 @@
-const MongoClient = require('mongodb').MongoClient;
+const mongoose = require('mongoose');
 
-const DB_URL = 'mongodb://localhost:27017/myproject';
+mongoose.Promise = global.Promise;
 
-const Database = {
+const DB_URL = 'mongodb://localhost:27017/prompt_me';
+
+const BaseModel = {
   connect() {
     return new Promise((resolve, reject) => {
-      MongoClient.connect(DB_URL, (err, db) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(db);
+      return mongoose.connect(DB_URL, (error) => {
+        if (error) {
+          reject(error);
         }
+        const db = mongoose.connection;
+        db.on('error', console.error.bind(console, 'connection error:'));
+        db.once('open', () => {
+          resolve();
+        });
       });
     });
   },
 
-  _close(db, result) {
-    return new Promise((resolve) => {
-      console.log('db closed');
-      db.close();
-      console.log('resolving with result');
-      resolve(result);
-    });
-  },
-
-  _add(collection, data) {
-    console.log(`called _add with data ${data}`);
+  close(result) {
     return new Promise((resolve, reject) => {
-      collection.insertMany(data, (err, result) => {
-        if (err) {
-          reject(err);
+      return mongoose.connection.close((error) => {
+        if (error) {
+          reject(error);
         } else {
-          console.log(`Inserted ${data.length} items into collection`);
           resolve(result);
         }
       });
-    });
-  },
-
-  _find(collection, criteria = {}) {
-    return new Promise((resolve, reject) => {
-      collection.find(criteria).toArray((err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          console.log(`Found ${result.length} matching results`);
-          resolve(result);
-        }
-      });
-    });
-  },
-
-  _delete(collection, criteria = {}) {
-    return new Promise((resolve, reject) => {
-      collection.deleteOne(criteria, (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          console.log(`Deleted ${result.length} matching results`);
-          resolve(result);
-        }
-      });
-    });
-  },
-
-  add(collectionName, data) {
-    return Database.wrapper(db => Database._add(db.collection(collectionName), data));
-  },
-
-  find(collectionName, criteria = {}) {
-    return Database.wrapper(db => Database._find(db.collection(collectionName), criteria));
-  },
-
-  delete(collectionName, criteria = {}) {
-    return Database.wrapper(db => Database._delete(db.collection(collectionName), criteria));
-  },
-
-  wrapper(method) {
-    return Database.connect().then((db) => {
-      const close = Database._close.bind(this, db);
-      return method(db).then(close);
     });
   }
 };
 
-module.exports = Database;
+const Prompt = {
+  create(data) {
+    const Model = Prompt.getModel();
+    return this.connect().then(() => {
+      return Promise.all(data.map((json) => {
+        const prompt = new Model(json);
+        return prompt.save();
+      }));
+    }).then(this.close);
+  },
+
+  find(criteria = {}) {
+    const Model = Prompt.getModel();
+    return this.connect().then(() => Model.find(criteria)).then(this.close);
+  },
+
+  delete(criteria = {}) {
+    const Model = Prompt.getModel();
+    if (Object.keys(criteria).length === 0) {
+      throw new Error('You must specify delete criteria');
+    }
+    return this.connect().then(() => Model.findOneAndRemove(criteria)).then(this.close);
+  },
+
+  name: 'Prompt',
+
+  schemaDefinition: {
+    text: String
+  },
+
+  getSchema: () => {
+    if (!Prompt._schema) {
+      Prompt._schema = new mongoose.Schema(Prompt.schemaDefinition);
+    }
+    return Prompt._schema;
+  },
+
+  getModel: () => {
+    if (!Prompt._model) {
+      Prompt._model = mongoose.model(Prompt.name, Prompt.getSchema());
+    }
+    return Prompt._model;
+  }
+};
+
+module.exports = {
+  Prompt: Object.assign({}, BaseModel, Prompt)
+};
