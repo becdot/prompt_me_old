@@ -1,10 +1,28 @@
-const express = require('express');
 const bodyParser = require('body-parser');
+const express = require('express');
+const LocalStrategy = require('passport-local').Strategy;
+const passport = require('passport');
+const session = require('express-session');
+const RedisStore = require('connect-redis')(session);
 
+const config = require('./config');
 const Prompt = require('./database').Prompt;
+const User = require('./database').User;
 
 const app = express();
 app.use(bodyParser.json());
+
+app.use(session({
+  store: new RedisStore({
+    url: config.redisStore.url
+  }),
+  secret: config.redisStore.secret,
+  resave: false,
+  saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const PORT = 3000;
 
@@ -17,9 +35,28 @@ app.get('/', (request, response) => {
   response.send('Hello from Express!');
 });
 
+passport.use(new LocalStrategy(
+  (username, password, done) => {
+    console.log(`looking for user ${username}...`);
+    User
+    .find({ username, password })
+    .then(user => done(null, user));
+  }
+));
+
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+passport.deserializeUser((id, done) => {
+  User.find({ _id: id }).then((err, user) => done(err, user));
+});
+
+app.post('/login', passport.authenticate('local'), (req, res) => res.redirect(`/users/${req.user.username}`));
+
 app.route('/prompts')
   .get((request, response) => {
-    Prompt.find().then((prompts) => {
+    Prompt.findAll().then((prompts) => {
       console.log(`Found ${prompts.length} prompts`);
       response.send(JSON.stringify(prompts));
     }).catch(onError.bind(this, response));
@@ -38,7 +75,7 @@ app.route('/prompts/:id')
     }).catch(onError.bind(this, response));
   })
   .put((request, response) => {
-    Prompt.update(request.params.id, request.body).then((prompt) => {
+    Prompt.update({ _id: request.params.id }, request.body).then((prompt) => {
       console.log(`Updated prompt ${prompt}`);
       response.send(JSON.stringify(prompt));
     }).catch(onError.bind(this, response));
@@ -47,6 +84,39 @@ app.route('/prompts/:id')
     Prompt.delete({ _id: request.params.id }).then((prompt) => {
       console.log(`Deleted prompt ${prompt}`);
       response.send(JSON.stringify(prompt));
+    }).catch(onError.bind(this, response));
+  });
+
+app.route('/users')
+  .get((request, response) => {
+    User.findAll().then((users) => {
+      console.log(`Found ${users.length} users`);
+      response.send(JSON.stringify(users));
+    }).catch(onError.bind(this, response));
+  })
+  .post((request, response) => {
+    User.create(request.body).then((user) => {
+      console.log(`Added user ${user.id} to the database`);
+      response.send(JSON.stringify(user));
+    }).catch(onError.bind(this, response));
+  });
+app.route('/users/:username')
+  .get((request, response) => {
+    User.find({ username: request.params.username }).then((user) => {
+      console.log(`Found user ${user}`);
+      response.send(JSON.stringify(user));
+    }).catch(onError.bind(this, response));
+  })
+  .put((request, response) => {
+    User.update({ username: request.params.username }, request.body).then((user) => {
+      console.log(`Updated user ${user}`);
+      response.send(JSON.stringify(user));
+    }).catch(onError.bind(this, response));
+  })
+  .delete((request, response) => {
+    User.delete({ username: request.params.username }).then((user) => {
+      console.log(`Deleted user ${user}`);
+      response.send(JSON.stringify(user));
     }).catch(onError.bind(this, response));
   });
 

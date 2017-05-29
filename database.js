@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
-mongoose.Promise = global.Promise;
+const config = require('./config');
 
-const DB_URL = 'mongodb://localhost:27017/prompt_me';
+mongoose.Promise = global.Promise;
 
 const BaseModel = {
   connect() {
     return new Promise((resolve, reject) => {
-      return mongoose.connect(DB_URL, (error) => {
+      return mongoose.connect(config.db.url, (error) => {
         if (error) {
           reject(error);
         }
@@ -35,12 +35,24 @@ const BaseModel = {
   onError(err) {
     BaseModel.close();
     return Promise.reject(err);
-  }
-};
+  },
 
-const Prompt = {
+  getSchema() {
+    if (!this._schema) {
+      this._schema = new mongoose.Schema(this.schemaDefinition);
+    }
+    return this._schema;
+  },
+
+  getModel() {
+    if (!this._model) {
+      this._model = mongoose.model(this.name, this.getSchema());
+    }
+    return this._model;
+  },
+
   create(data) {
-    const Model = Prompt.getModel();
+    const Model = this.getModel();
     return (
       this.connect()
       .then(() => {
@@ -53,7 +65,17 @@ const Prompt = {
   },
 
   find(criteria = {}) {
-    const Model = Prompt.getModel();
+    const Model = this.getModel();
+    return (
+      this.connect()
+      .then(() => Model.findOne(criteria))
+      .then(this.close)
+      .catch(this.onError)
+    );
+  },
+
+  findAll(criteria = {}) {
+    const Model = this.getModel();
     return (
       this.connect()
       .then(() => Model.find(criteria))
@@ -62,23 +84,23 @@ const Prompt = {
     );
   },
 
-  update(id = null, data = {}) {
-    const Model = Prompt.getModel();
-    if (!id) {
-      return Promise.reject(new Error('You must specify an id to update'));
+  update(criteria, data = {}) {
+    const Model = this.getModel();
+    if (Object.keys(data).length === 0) {
+      return Promise.reject(new Error('You must specify criteria'));
     } else if (Object.keys(data).length === 0) {
       return Promise.reject(new Error('You must specify PUT data to update'));
     }
     return (
       this.connect()
-      .then(() => Model.findOneAndUpdate({ _id: id }, data))
+      .then(() => Model.findOneAndUpdate(criteria, data))
       .then(this.close)
       .catch(this.onError)
     );
   },
 
   delete(criteria = {}) {
-    const Model = Prompt.getModel();
+    const Model = this.getModel();
     if (Object.keys(criteria).length === 0) {
       return Promise.reject(new Error('You must specify DELETE criteria'));
     }
@@ -88,29 +110,27 @@ const Prompt = {
       .then(this.close)
       .catch(this.onError)
     );
-  },
+  }
+};
 
+const Prompt = {
   name: 'Prompt',
 
   schemaDefinition: {
     text: String
-  },
+  }
+};
 
-  getSchema: () => {
-    if (!Prompt._schema) {
-      Prompt._schema = new mongoose.Schema(Prompt.schemaDefinition);
-    }
-    return Prompt._schema;
-  },
+const User = {
+  name: 'User',
 
-  getModel: () => {
-    if (!Prompt._model) {
-      Prompt._model = mongoose.model(Prompt.name, Prompt.getSchema());
-    }
-    return Prompt._model;
+  schemaDefinition: {
+    username: String,
+    password: String
   }
 };
 
 module.exports = {
-  Prompt: Object.assign({}, BaseModel, Prompt)
+  Prompt: Object.assign({}, BaseModel, Prompt),
+  User: Object.assign({}, BaseModel, User)
 };
