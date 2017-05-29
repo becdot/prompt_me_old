@@ -30,31 +30,64 @@ const BaseModel = {
         }
       });
     });
+  },
+
+  onError(err) {
+    BaseModel.close();
+    return Promise.reject(err);
   }
 };
 
 const Prompt = {
   create(data) {
     const Model = Prompt.getModel();
-    return this.connect().then(() => {
-      return Promise.all(data.map((json) => {
-        const prompt = new Model(json);
+    return (
+      this.connect()
+      .then(() => {
+        const prompt = new Model(data);
         return prompt.save();
-      }));
-    }).then(this.close);
+      })
+      .then(this.close)
+      .catch(this.onError)
+    );
   },
 
   find(criteria = {}) {
     const Model = Prompt.getModel();
-    return this.connect().then(() => Model.find(criteria)).then(this.close);
+    return (
+      this.connect()
+      .then(() => Model.find(criteria))
+      .then(this.close)
+      .catch(this.onError)
+    );
+  },
+
+  update(id = null, data = {}) {
+    const Model = Prompt.getModel();
+    if (!id) {
+      return Promise.reject(new Error('You must specify an id to update'));
+    } else if (Object.keys(data).length === 0) {
+      return Promise.reject(new Error('You must specify PUT data to update'));
+    }
+    return (
+      this.connect()
+      .then(() => Model.findOneAndUpdate({ _id: id }, data))
+      .then(this.close)
+      .catch(this.onError)
+    );
   },
 
   delete(criteria = {}) {
     const Model = Prompt.getModel();
     if (Object.keys(criteria).length === 0) {
-      throw new Error('You must specify delete criteria');
+      return Promise.reject(new Error('You must specify DELETE criteria'));
     }
-    return this.connect().then(() => Model.findOneAndRemove(criteria)).then(this.close);
+    return (
+      this.connect()
+      .then(() => Model.findOneAndRemove(criteria))
+      .then(this.close)
+      .catch(this.onError)
+    );
   },
 
   name: 'Prompt',
