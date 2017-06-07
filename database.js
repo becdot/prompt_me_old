@@ -113,24 +113,4 @@ const BaseModel = {
   }
 };
 
-const Prompt = {
-  name: 'Prompt',
-
-  schemaDefinition: {
-    text: String
-  }
-};
-
-const User = {
-  name: 'User',
-
-  schemaDefinition: {
-    username: String,
-    password: String
-  }
-};
-
-module.exports = {
-  Prompt: Object.assign({}, BaseModel, Prompt),
-  User: Object.assign({}, BaseModel, User)
-};
+module.exports = BaseModel;

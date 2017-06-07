@@ -6,8 +6,8 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 
 const config = require('./config');
-const Prompt = require('./database').Prompt;
-const User = require('./database').User;
+const Prompt = require('./prompt/prompt');
+const User = require('./user/user');
 
 const app = express();
 app.use(bodyParser.json());
