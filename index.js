@@ -24,7 +24,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const onError = (response, error) => {
   console.log(error);
