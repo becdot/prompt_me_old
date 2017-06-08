@@ -1,11 +1,11 @@
 const bodyParser = require('body-parser');
+require('dotenv').config({ path: './.promptsrc' });
 const express = require('express');
 const LocalStrategy = require('passport-local').Strategy;
 const passport = require('passport');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 
-const config = require('./config');
 const Prompt = require('./prompt/prompt');
 const User = require('./user/user');
 
@@ -14,9 +14,9 @@ app.use(bodyParser.json());
 
 app.use(session({
   store: new RedisStore({
-    url: config.redisStore.url
+    url: process.env.REDIS_STORE_URI
   }),
-  secret: config.redisStore.secret,
+  secret: process.env.REDIS_STORE_SECRET,
   resave: false,
   saveUninitialized: false
 }));

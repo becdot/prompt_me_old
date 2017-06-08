@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
 
-const config = require('./config');
-
 mongoose.Promise = global.Promise;
 
 const BaseModel = {
   connect() {
     return new Promise((resolve, reject) => {
-      return mongoose.connect(config.db.url, (error) => {
+      return mongoose.connect(process.env.DATABASE_URL, (error) => {
         if (error) {
           reject(error);
         }
