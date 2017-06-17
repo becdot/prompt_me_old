@@ -4,9 +4,10 @@
   "description": "Automatic writing prompt generator",
   "main": "index.js",
   "scripts": {
-    "database": "mongod --dbpath=data --port 27017",
-    "start": "node index.js",
-    "test": "PORT=12345 mocha tests/*"
+    "database": "mongod --dbpath=data --config=./mongod.conf",
+    "redis": "redis-server",
+    "start": "nodemon ./index.js",
+    "test": "mocha tests/*"
   },
   "repository": {
     "type": "git",

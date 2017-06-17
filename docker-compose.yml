@@ -1,0 +1,21 @@
+version: '2'
+services:
+  db:
+    image: mongo:3.0.2
+    ports:
+      - 27017:27017
+    env_file:
+      - mongod.conf
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+  app:
+    build: .
+    ports:
+      - 5000:3000
+    env_file:
+      - .promptsrc
+    links:
+      - db
+      - redis

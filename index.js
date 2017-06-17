@@ -6,6 +6,7 @@ const passport = require('passport');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 
+// const promptRoutes = require('./prompt/routes');
 const Prompt = require('./prompt/prompt');
 const User = require('./user/user');
 
@@ -23,8 +24,6 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-const PORT = process.env.PORT || 3000;
 
 const onError = (response, error) => {
   console.log(error);
@@ -101,23 +100,25 @@ app.route('/users')
     }).catch(onError.bind(this, response));
   });
 app.route('/users/:username')
-  .get((request, response) => {
-    User.find({ username: request.params.username }).then((user) => {
-      console.log(`Found user ${user}`);
-      response.send(JSON.stringify(user));
-    }).catch(onError.bind(this, response));
-  })
-  .put((request, response) => {
-    User.update({ username: request.params.username }, request.body).then((user) => {
-      console.log(`Updated user ${user}`);
-      response.send(JSON.stringify(user));
-    }).catch(onError.bind(this, response));
-  })
-  .delete((request, response) => {
-    User.delete({ username: request.params.username }).then((user) => {
-      console.log(`Deleted user ${user}`);
-      response.send(JSON.stringify(user));
-    }).catch(onError.bind(this, response));
-  });
+//   .get((request, response) => {
+//     User.find({ username: request.params.username }).then((user) => {
+//       console.log(`Found user ${user}`);
+//       response.send(JSON.stringify(user));
+//     }).catch(onError.bind(this, response));
+//   })
+//   .put((request, response) => {
+//     User.update({ username: request.params.username }, request.body).then((user) => {
+//       console.log(`Updated user ${user}`);
+//       response.send(JSON.stringify(user));
+//     }).catch(onError.bind(this, response));
+//   })
+//   .delete((request, response) => {
+//     User.delete({ username: request.params.username }).then((user) => {
+//       console.log(`Deleted user ${user}`);
+//       response.send(JSON.stringify(user));
+//     }).catch(onError.bind(this, response));
+//   });
 
-app.listen(PORT, () => console.log(`server is listening on ${PORT}`));
+// app.use('/prompts', promptRoutes);
+
+app.listen(process.env.PORT, () => console.log(`server is listening on ${process.env.PORT}`));

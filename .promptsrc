@@ -1,0 +1,4 @@
+REDIS_STORE_URI=redis://localhost:6379
+REDIS_STORE_SECRET=secret
+DATABASE_URL=mongodb://0.0.0.0:27017/prompt_me
+PORT=3000
