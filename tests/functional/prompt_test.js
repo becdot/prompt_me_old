@@ -25,7 +25,7 @@ describe('prompt', () => {
 
   const makeRequest = (options) => {
     return new Promise((resolve, reject) => {
-      return request(options, (err, resp, body) => {
+      request(options, (err, resp, body) => {
         if (err) {
           reject(err);
         } else {

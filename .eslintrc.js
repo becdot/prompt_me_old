@@ -5,7 +5,9 @@ module.exports = {
       "it": false,
       "beforeEach": false,
       "afterEach": false,
-      "before": false
+      "before": false,
+      "after": false,
+      "document": false
     },
     "plugins": [
         "react",
@@ -15,6 +17,7 @@ module.exports = {
     "rules": {
       "comma-dangle": 0,
       "consistent-return": 0,
+      "react/jsx-filename-extension": 0,
       "no-underscore-dangle": 0
     }
 };
