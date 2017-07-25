@@ -7,6 +7,7 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 
 // const promptRoutes = require('./prompt/routes');
+const renderedApp = require('./server.jsx');
 const Prompt = require('./prompt/prompt');
 const User = require('./user/user');
 
@@ -31,20 +32,7 @@ const onError = (response, error) => {
 };
 
 app.get('/', (request, response) => {
-  response.send('Hello from Express!');
-});
-
-passport.use(new LocalStrategy(
-  (username, password, done) => {
-    console.log(`looking for user ${username}...`);
-    User
-    .find({ username, password })
-    .then(user => done(null, user));
-  }
-));
-
-passport.serializeUser((user, done) => {
-  done(null, user._id);
+  response.send(renderedApp);
 });
 
 passport.deserializeUser((id, done) => {
